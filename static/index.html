@@ -33,7 +33,7 @@
         }
 
         #questionText {
-            min-height: 60px;
+            min-height: 85px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -63,6 +63,11 @@
             flex-direction: column;
             justify-content: space-between;
         }
+
+        .voted-bar {
+            background-color: red !important;
+        }
+
 
         .slider-container {
             display: flex;
@@ -115,10 +120,9 @@
 
         .tick-marks {
             position: absolute;
-            top: 2.7px;
+            top: 0.17rem;
             left: 0;
             right: 0;
-            height: 10px;
             display: flex;
             justify-content: space-between;
             padding: 0 10px;
@@ -249,17 +253,20 @@
             display: none !important;
         }
 
-        @media (max-width: 500px) {
+        @media (max-width: 600px) {
 
             .arrow-btn,
             .center-btn {
                 font-size: 1rem;
                 padding: 0.3rem 0.8rem;
+                flex: 1;
+                min-width: 0;
             }
 
             .nav-controls {
-                flex-direction: column;
+                flex-direction: row;
                 gap: 0.5rem;
+                flex-wrap: nowrap;
             }
 
             .question-container {
@@ -338,6 +345,11 @@
             return "Strongly Agree";
         }
 
+        function getVotedValue(questionId) {
+            const val = localStorage.getItem(`voteValue_${questionId}`);
+            return val ? parseFloat(val) : null;
+        }
+
         function updateQuestion() {
             const question = questions[currentQuestion];
             questionText.textContent = `"${question.text}"`;
@@ -400,7 +412,7 @@
             });
 
             if (res.ok) {
-                markVoted(questionId);
+                markVoted(questionId, value);
                 await fetchResults(questionId);
             } else {
                 alert("Failed to vote.");
@@ -414,24 +426,28 @@
             const res = await fetch(`/api/results/${questionId}`);
             const data = await res.json();
 
+            const votedValue = getVotedValue(questionId);
+            const votedBin = votedValue ? Math.round(votedValue) : null;
+
             chartContainer.innerHTML = "";
             data.bins.forEach((bin, i) => {
+                const isVoted = bin === votedBin;
                 const container = document.createElement("div");
                 container.className = "chart-bar-container";
                 container.innerHTML = `
-                    <div class="chart-percentage">${data.percentages[i]}%</div>
-                    <div class="chart-bar-wrapper">
-                        <div class="chart-bar" style="width: ${data.percentages[i]}%"></div>
-                    </div>
-                `;
-
+            <div class="chart-percentage">${data.percentages[i]}%</div>
+            <div class="chart-bar-wrapper">
+                <div class="chart-bar ${isVoted ? 'voted-bar' : ''}" style="width: ${data.percentages[i]}%"></div>
+            </div>
+            <div class="chart-label">${getLabel(bin)}</div>
+        `;
                 chartContainer.appendChild(container);
             });
 
             document.getElementById("totalVotes").textContent = data.totalVotes;
             document.getElementById("avgScore").textContent = data.avg;
 
-            document.querySelector(".likert-scale").style.display = "none";  // ← this line hides the slider
+            document.querySelector(".likert-scale").style.display = "none";
             resultsContainer.style.display = "block";
             voteBtn.style.display = "none";
         }
@@ -455,12 +471,13 @@
             return voted.includes(questionId);
         }
 
-        function markVoted(questionId) {
+        function markVoted(questionId, value) {
             const voted = JSON.parse(localStorage.getItem("votedQuestions") || "[]");
             if (!voted.includes(questionId)) {
                 voted.push(questionId);
                 localStorage.setItem("votedQuestions", JSON.stringify(voted));
             }
+            localStorage.setItem(`voteValue_${questionId}`, value);
         }
 
 
