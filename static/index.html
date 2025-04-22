@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Likert Scale Question</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 80px 10px 20px 10px;
+        }
+
+        .question-container {
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #questionText {
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .likert-scale,
+        .results-container {
+            width: 100%;
+            min-height: 170px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .likert-scale {
+            margin-top: 2rem;
+        }
+
+        .results-container {
+            margin: 0;
+        }
+
+        .chart-container {
+            width: 100%;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .slider-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            position: relative;
+        }
+
+        .slider-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 12px;
+            background: #444;
+            border-radius: 6px;
+            outline: none;
+            position: relative;
+            z-index: 2;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            background: #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+            position: relative;
+            z-index: 3;
+        }
+
+        input[type=range]::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            background: #fff;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+            position: relative;
+            z-index: 3;
+        }
+
+        .tick-marks {
+            position: absolute;
+            top: 2.7px;
+            left: 0;
+            right: 0;
+            height: 10px;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 10px;
+            z-index: 4;
+            pointer-events: none;
+        }
+
+        .tick {
+            width: 2px;
+            height: 12px;
+            background-color: #fff;
+        }
+
+        .slider-value {
+            margin-top: 2rem;
+            font-size: 1.2rem;
+        }
+
+        .label-description {
+            margin-top: 1rem;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .nav-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .arrow-btn,
+        .center-btn {
+            background: none;
+            border: 2px solid #fff;
+            color: #fff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0.4rem 1.2rem;
+            border-radius: 8px;
+            flex: 1 1 auto;
+        }
+
+        .arrow-btn:hover,
+        .center-btn:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        .chart-bar-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.8rem;
+            width: 100%;
+        }
+
+        .chart-percentage {
+            width: 40px;
+            text-align: right;
+            font-size: 0.9rem;
+            margin-right: 10px;
+        }
+
+        .chart-bar-wrapper {
+            flex-grow: 1;
+            background-color: #333;
+            height: 20px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+
+        .chart-bar {
+            height: 100%;
+            background-color: #fff;
+            transition: width 1s ease-in-out;
+            width: 0%;
+        }
+
+        .chart-label {
+            width: 70px;
+            text-align: left;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .content-wrapper {
+            position: relative;
+            width: 100%;
+            min-height: 250px;
+            margin-top: 4rem;
+            margin-bottom: 2rem;
+        }
+
+        .results-summary {
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .likert-scale,
+        .results-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .results-container h3 {
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+
+        .chart-container {
+            height: calc(100% - 55px);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .chart-bar-container {
+            margin-bottom: 4px;
+        }
+
+        #showResultsBtn {
+            display: none !important;
+        }
+
+        @media (max-width: 500px) {
+
+            .arrow-btn,
+            .center-btn {
+                font-size: 1rem;
+                padding: 0.3rem 0.8rem;
+            }
+
+            .nav-controls {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .question-container {
+                padding: 0 0.5rem;
+            }
+
+            .chart-label {
+                font-size: 0.75rem;
+            }
+
+            .chart-percentage {
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+
+</head>
+
+<body>
+    <div class="question-container">
+        <h2 id="questionText">Loading...</h2>
+        <div class="content-wrapper">
+            <div class="likert-scale">
+                <div class="slider-container">
+                    <div class="slider-wrapper">
+                        <div class="tick-marks">
+                            <div class="tick"></div>
+                            <div class="tick"></div>
+                            <div class="tick"></div>
+                            <div class="tick"></div>
+                            <div class="tick"></div>
+                        </div>
+                        <input type="range" min="1" max="5" step="0.1" value="3" id="likertRange">
+                    </div>
+                    <div class="slider-value"><span id="sliderValue">3.0</span></div>
+                    <div class="label-description" id="sliderLabel">Neutral</div>
+                </div>
+            </div>
+            <div id="results-container" class="results-container" style="display: none;">
+                <h3>How others voted:</h3>
+                <div class="chart-container" id="chartContainer"></div>
+                <div class="results-summary">
+                    <div>Total Votes: <span id="totalVotes">0</span></div>
+                    <div>Average Score: <span id="avgScore">0.0</span></div>
+                </div>
+            </div>
+        </div>
+        <div class="nav-controls">
+            <button id="prevBtn" class="arrow-btn">&#8592;</button>
+            <button id="voteBtn" class="center-btn">Vote</button>
+            <button id="nextBtn" class="arrow-btn">&#8594;</button>
+        </div>
+    </div>
+    <script>
+        let questions = [];
+        let currentQuestion = 0;
+
+        const questionText = document.getElementById("questionText");
+        const rangeInput = document.getElementById("likertRange");
+        const valueDisplay = document.getElementById("sliderValue");
+        const labelDisplay = document.getElementById("sliderLabel");
+        const voteBtn = document.getElementById("voteBtn");
+        const resultsContainer = document.getElementById("results-container");
+        const chartContainer = document.getElementById("chartContainer");
+
+        function getQueryParam(key) {
+            const params = new URLSearchParams(window.location.search);
+            return params.has(key) ? params.get(key) : null;
+        }
+
+        function getLabel(value) {
+            if (value < 1.5) return "Strongly Disagree";
+            if (value < 2.5) return "Disagree";
+            if (value < 3.5) return "Neutral";
+            if (value < 4.5) return "Agree";
+            return "Strongly Agree";
+        }
+
+        function updateQuestion() {
+            const question = questions[currentQuestion];
+            questionText.textContent = `"${question.text}"`;
+            rangeInput.value = 3;
+            valueDisplay.textContent = "3.0";
+            labelDisplay.textContent = getLabel(3.0);
+
+            const likertEl = document.querySelector(".likert-scale");
+
+            if (hasVoted(question.id)) {
+                // Hide Likert, show results
+                likertEl.style.display = "none";
+                voteBtn.style.display = "none";
+                fetchResults(question.id);
+            } else {
+                // Show Likert, hide results
+                likertEl.style.display = "flex";
+                resultsContainer.style.display = "none";
+                voteBtn.style.display = "inline-block";
+            }
+
+            // Control arrow visibility
+            document.getElementById("prevBtn").style.visibility = currentQuestion === 0 ? "hidden" : "visible";
+            document.getElementById("nextBtn").style.visibility = currentQuestion === questions.length - 1 ? "hidden" : "visible";
+
+            const qid = questions[currentQuestion].id;
+            const url = new URL(window.location);
+            url.searchParams.set("q", qid);
+            window.history.replaceState({}, "", url);
+        }
+
+        async function fetchQuestions() {
+            const res = await fetch("/api/questions");
+            questions = await res.json();
+
+            const paramQ = parseInt(getQueryParam("q"), 10);
+            const matchIndex = questions.findIndex(q => q.id === paramQ);
+
+            currentQuestion = matchIndex !== -1 ? matchIndex : 0;
+            updateQuestion();
+        }
+        rangeInput.addEventListener("input", () => {
+            const value = parseFloat(rangeInput.value).toFixed(1);
+            valueDisplay.textContent = value;
+            labelDisplay.textContent = getLabel(value);
+        });
+
+        voteBtn.addEventListener("click", async () => {
+            const questionId = questions[currentQuestion].id;
+            if (hasVoted(questionId)) {
+                alert("You have already voted on this question.");
+                return;
+            }
+
+            const value = parseFloat(rangeInput.value).toFixed(1);
+            const res = await fetch("/api/vote", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ questionId, value })
+            });
+
+            if (res.ok) {
+                markVoted(questionId);
+                await fetchResults(questionId);
+            } else {
+                alert("Failed to vote.");
+            }
+        });
+
+
+
+
+        async function fetchResults(questionId) {
+            const res = await fetch(`/api/results/${questionId}`);
+            const data = await res.json();
+
+            chartContainer.innerHTML = "";
+            data.bins.forEach((bin, i) => {
+                const container = document.createElement("div");
+                container.className = "chart-bar-container";
+                container.innerHTML = `
+                    <div class="chart-percentage">${data.percentages[i]}%</div>
+                    <div class="chart-bar-wrapper">
+                        <div class="chart-bar" style="width: ${data.percentages[i]}%"></div>
+                    </div>
+                `;
+
+                chartContainer.appendChild(container);
+            });
+
+            document.getElementById("totalVotes").textContent = data.totalVotes;
+            document.getElementById("avgScore").textContent = data.avg;
+
+            document.querySelector(".likert-scale").style.display = "none";  // ← this line hides the slider
+            resultsContainer.style.display = "block";
+            voteBtn.style.display = "none";
+        }
+
+        document.getElementById("prevBtn").addEventListener("click", () => {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                updateQuestion();
+            }
+        });
+
+        document.getElementById("nextBtn").addEventListener("click", () => {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                updateQuestion();
+            }
+        });
+
+        function hasVoted(questionId) {
+            const voted = JSON.parse(localStorage.getItem("votedQuestions") || "[]");
+            return voted.includes(questionId);
+        }
+
+        function markVoted(questionId) {
+            const voted = JSON.parse(localStorage.getItem("votedQuestions") || "[]");
+            if (!voted.includes(questionId)) {
+                voted.push(questionId);
+                localStorage.setItem("votedQuestions", JSON.stringify(voted));
+            }
+        }
+
+
+        fetchQuestions();
+    </script>
+</body>
+
+</html>
