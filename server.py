@@ -118,7 +118,7 @@ def get_results(question_id):
         percentages = [round(c / total * 100) for c in bin_votes]
         weighted_sum = sum(c * val for c, val in zip(bin_votes, bin_edges))
         avg = round(weighted_sum / total, 2)
-        
+
     print("📊 Sending bins:", list(zip(bin_edges, percentages)))
 
     return jsonify({
@@ -131,8 +131,11 @@ def get_results(question_id):
 
 @app.route("/")
 def serve_index():
-    return send_from_directory("static", "index.html")
+    return send_from_directory(app.static_folder, "index.html")
 
+@app.route("/<path:path>")
+def serve_static(path):
+    return send_from_directory(app.static_folder, path)
 ## production launch
 with app.app_context():
     init_db()

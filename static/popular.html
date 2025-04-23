@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Popular Questions</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 2rem;
+        }
+
+        .question-list {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .question-item {
+            background-color: #111;
+            border: 1px solid #333;
+            padding: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .question-item:hover {
+            background-color: #222;
+        }
+
+        .pagination {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .pagination button {
+            background: none;
+            border: 2px solid #fff;
+            color: #fff;
+            padding: 0.5rem 1.2rem;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .pagination button:hover {
+            background: #fff;
+            color: #000;
+        }
+
+        @media (max-width: 600px) {
+            .question-item {
+                font-size: 0.95rem;
+            }
+
+            .pagination button {
+                font-size: 0.9rem;
+                padding: 0.4rem 0.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Popular Questions</h1>
+    <div id="questionList" class="question-list"></div>
+    <div class="pagination">
+        <button id="prevPage">Previous</button>
+        <button id="nextPage">Next</button>
+    </div>
+
+    <script>
+        let questions = [];
+        let currentPage = 0;
+        const pageSize = 20;
+
+        const questionList = document.getElementById("questionList");
+        const prevBtn = document.getElementById("prevPage");
+        const nextBtn = document.getElementById("nextPage");
+
+        function renderQuestions() {
+            questionList.innerHTML = "";
+            const start = currentPage * pageSize;
+            const end = start + pageSize;
+            const currentQuestions = questions.slice(start, end);
+
+            currentQuestions.forEach(q => {
+                const div = document.createElement("div");
+                div.className = "question-item";
+                div.textContent = q.text;
+                div.addEventListener("click", () => {
+                    window.location.href = `/?q=${q.id}`;
+                });
+                questionList.appendChild(div);
+            });
+
+            prevBtn.disabled = currentPage === 0;
+            nextBtn.disabled = end >= questions.length;
+        }
+
+        async function fetchQuestions() {
+            const res = await fetch("/api/questions");
+            questions = await res.json();
+            renderQuestions();
+        }
+
+        prevBtn.addEventListener("click", () => {
+            if (currentPage > 0) {
+                currentPage--;
+                renderQuestions();
+            }
+        });
+
+        nextBtn.addEventListener("click", () => {
+            if ((currentPage + 1) * pageSize < questions.length) {
+                currentPage++;
+                renderQuestions();
+            }
+        });
+
+        fetchQuestions();
+    </script>
+</body>
+
+</html>
