@@ -7,7 +7,9 @@ app = Flask(__name__, static_folder='static')
 CORS(app)
 
 DATABASE = 'votes.db'
-BIN_VALUES = [1, 2, 3, 4, 5]
+bins = 5/0.1
+BIN_VALUES = [round(1.0 + 0.1 * i, 1) for i in range(int(bins))]
+
 
 # --- DB SETUP ---
 def get_db():
@@ -92,26 +94,40 @@ def record_vote():
 @app.route("/api/results/<int:question_id>")
 def get_results(question_id):
     db = get_db()
-    cursor = db.execute("SELECT value, COUNT(*) as count FROM votes WHERE question_id = ? GROUP BY value", (question_id,))
-    counts_dict = {row["value"]: row["count"] for row in cursor.fetchall()}
+    cursor = db.execute(
+        "SELECT value, COUNT(*) as count FROM votes WHERE question_id = ? GROUP BY value",
+        (question_id,)
+    )
+    counts_raw = {int(row["value"]): row["count"] for row in cursor.fetchall()}
 
-    counts = [counts_dict.get(b, 0) for b in BIN_VALUES]
-    total = sum(counts)
+    bin_size = 0.1
+    bin_count = int((5.0 - 1.0) / bin_size) + 1  # 1.0 to 5.9 → 50 bins
+    bin_edges = [round(1.0 + i * bin_size, 1) for i in range(bin_count)]
+    bin_votes = [0] * bin_count
 
+    for val, count in counts_raw.items():
+        bin_index = int((val - 1.0) / bin_size)
+        if 0 <= bin_index < bin_count:
+            bin_votes[bin_index] += count
+
+    total = sum(bin_votes)
     if total == 0:
-        percentages = [0] * len(BIN_VALUES)
+        percentages = [0] * bin_count
         avg = 0.0
     else:
-        percentages = [round(c / total * 100) for c in counts]
-        weighted_sum = sum(c * val for c, val in zip(counts, BIN_VALUES))
+        percentages = [round(c / total * 100) for c in bin_votes]
+        weighted_sum = sum(c * val for c, val in zip(bin_votes, bin_edges))
         avg = round(weighted_sum / total, 2)
+        
+    print("📊 Sending bins:", list(zip(bin_edges, percentages)))
 
     return jsonify({
-        "bins": BIN_VALUES,
+        "bins": bin_edges,
         "percentages": percentages,
-        "totalVotes": total,
+        "totalVotes": int(total),
         "avg": avg
     })
+
 
 @app.route("/")
 def serve_index():

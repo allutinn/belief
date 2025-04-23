@@ -56,13 +56,6 @@
             margin: 0;
         }
 
-        .chart-container {
-            width: 100%;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
 
         .voted-bar {
             background-color: red !important;
@@ -77,10 +70,8 @@
             position: relative;
         }
 
-        .slider-wrapper {
-            position: relative;
-            width: 100%;
-        }
+
+
 
         input[type=range] {
             -webkit-appearance: none;
@@ -103,8 +94,10 @@
             cursor: pointer;
             box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
             position: relative;
-            z-index: 3;
+            z-index: 2;
+
         }
+
 
         input[type=range]::-moz-range-thumb {
             width: 22px;
@@ -115,30 +108,55 @@
             cursor: pointer;
             box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
             position: relative;
-            z-index: 3;
+            z-index: 2;
         }
 
-        .tick-marks {
+        .slider-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+
+        /* Tick container overlays the slider */
+        .tick-marks-wrapper {
             position: absolute;
-            top: 0.17rem;
+            top: 0;
+            /* align to top of slider-wrapper */
             left: 0;
             right: 0;
+            height: 100%;
+            pointer-events: none;
+            z-index: 3;
+            /* 👈 higher than the range track */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Flex container for tick spacing */
+        .tick-marks {
             display: flex;
             justify-content: space-between;
-            padding: 0 10px;
-            z-index: 4;
-            pointer-events: none;
+            width: 100%;
+            padding: 0 12px;
         }
 
         .tick {
-            width: 2px;
+            width: 1.5px;
             height: 12px;
+            transform: translateY(-0.6px);
             background-color: #fff;
+            z-index: 3;
+            border-radius: 30%;
+
         }
+
+
 
         .slider-value {
             margin-top: 2rem;
             font-size: 1.2rem;
+            z-index: 4;
         }
 
         .label-description {
@@ -168,18 +186,32 @@
             flex: 1 1 auto;
         }
 
-        .arrow-btn:hover,
-        .center-btn:hover {
-            background: #fff;
-            color: #000;
+        @media (hover: hover) and (pointer: fine) {
+
+            .arrow-btn:hover,
+            .center-btn:hover {
+                background: #fff;
+                color: #000;
+            }
         }
 
-        .chart-bar-container {
-            display: flex;
-            align-items: center;
-            margin-bottom: 0.8rem;
-            width: 100%;
+
+        .chart-container {
+            height: 170px;
+            /* Or whatever fixed height you prefer */
+
+            display: block;
+            position: relative;
         }
+
+        .chart-container {
+            will-change: contents;
+        }
+
+        .chart-bar {
+            will-change: width;
+        }
+
 
         .chart-percentage {
             width: 40px;
@@ -188,28 +220,57 @@
             margin-right: 10px;
         }
 
+        .chart-bar-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            height: 3px;
+            margin-bottom: 1px;
+        }
+
         .chart-bar-wrapper {
             flex-grow: 1;
             background-color: #333;
-            height: 20px;
+            height: 100%;
+            border-radius: 2px;
             position: relative;
-            overflow: hidden;
-            border-radius: 4px;
+            overflow: visible;
+            /* Crucial for label visibility */
         }
 
         .chart-bar {
             height: 100%;
             background-color: #fff;
-            transition: width 1s ease-in-out;
             width: 0%;
         }
 
-        .chart-label {
-            width: 70px;
-            text-align: left;
-            font-size: 0.8rem;
-            flex-shrink: 0;
+        .chart-number {
+            position: absolute;
+            left: -12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.65rem;
+            white-space: nowrap;
+            text-align: right;
         }
+
+        .chart-label {
+            position: absolute;
+            right: -60px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.65rem;
+            width: 55px;
+            /* Controls wrapping */
+            white-space: normal;
+            /* Allow wrapping */
+            text-align: left;
+            /* Align to left */
+            line-height: 1.1;
+        }
+
+
 
         .content-wrapper {
             position: relative;
@@ -238,16 +299,7 @@
             margin-bottom: 5px;
         }
 
-        .chart-container {
-            height: calc(100% - 55px);
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-        }
 
-        .chart-bar-container {
-            margin-bottom: 4px;
-        }
 
         #showResultsBtn {
             display: none !important;
@@ -274,12 +326,20 @@
             }
 
             .chart-label {
-                font-size: 0.75rem;
+                font-size: 0.5rem;
+                max-width: 50px;
+                right: -53px;
             }
 
             .chart-percentage {
                 font-size: 0.75rem;
             }
+
+            .chart-container {
+                width: calc(100% - 20px)
+            }
+
+
         }
     </style>
 
@@ -292,12 +352,14 @@
             <div class="likert-scale">
                 <div class="slider-container">
                     <div class="slider-wrapper">
-                        <div class="tick-marks">
-                            <div class="tick"></div>
-                            <div class="tick"></div>
-                            <div class="tick"></div>
-                            <div class="tick"></div>
-                            <div class="tick"></div>
+                        <div class="tick-marks-wrapper">
+                            <div class="tick-marks">
+                                <div class="tick"></div>
+                                <div class="tick"></div>
+                                <div class="tick"></div>
+                                <div class="tick"></div>
+                                <div class="tick"></div>
+                            </div>
                         </div>
                         <input type="range" min="1" max="5" step="0.1" value="3" id="likertRange">
                     </div>
@@ -427,22 +489,39 @@
             const data = await res.json();
 
             const votedValue = getVotedValue(questionId);
-            const votedBin = votedValue ? Math.round(votedValue) : null;
+            const votedBin = votedValue ? Math.round(votedValue * 10) / 10 : null;
 
             chartContainer.innerHTML = "";
-            data.bins.forEach((bin, i) => {
-                const isVoted = bin === votedBin;
-                const container = document.createElement("div");
-                container.className = "chart-bar-container";
-                container.innerHTML = `
-            <div class="chart-percentage">${data.percentages[i]}%</div>
-            <div class="chart-bar-wrapper">
-                <div class="chart-bar ${isVoted ? 'voted-bar' : ''}" style="width: ${data.percentages[i]}%"></div>
-            </div>
-            <div class="chart-label">${getLabel(bin)}</div>
-        `;
-                chartContainer.appendChild(container);
-            });
+
+            // STEP 1: Render bar structure (without widths)
+            const bars = data.bins.map((binValue, i) => {
+                const bin = parseFloat(binValue).toFixed(1);
+                const isVoted = parseFloat(bin) === parseFloat(votedBin);
+                const rounded = Math.round(bin);
+                const showLabel = (Math.abs(bin - rounded) < 0.05) && rounded >= 1 && rounded <= 5;
+
+                return `
+                <div class="chart-bar-container" style="position: relative">
+                    <div class="chart-number">${showLabel ? rounded : ""}</div>
+                    <div class="chart-bar-wrapper">
+                        <div class="chart-bar ${isVoted ? 'voted-bar' : ''}" data-index="${i}"></div>
+                    </div>
+                    <div class="chart-label">${showLabel ? getLabel(rounded) : ""}</div>
+                </div>`;
+            }).join("");
+
+            chartContainer.innerHTML = bars;
+
+            // STEP 2: Animate bar widths after short delay (let DOM render first)
+            setTimeout(() => {
+                data.percentages.forEach((pct, i) => {
+                    const bar = chartContainer.querySelector(`.chart-bar[data-index="${i}"]`);
+                    if (bar) {
+                        bar.style.transition = "width 0.3s ease-out";
+                        bar.style.width = `${pct}%`;
+                    }
+                });
+            }, 10);
 
             document.getElementById("totalVotes").textContent = data.totalVotes;
             document.getElementById("avgScore").textContent = data.avg;
@@ -451,6 +530,9 @@
             resultsContainer.style.display = "block";
             voteBtn.style.display = "none";
         }
+
+
+
 
         document.getElementById("prevBtn").addEventListener("click", () => {
             if (currentQuestion > 0) {
